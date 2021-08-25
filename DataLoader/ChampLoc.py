@@ -33,9 +33,9 @@ class LocationData():
 
     def select_champID(self, ChampID=67):
         """
-        특정 Champion의 위치데이터만 Slicing하여 DataFrame으로 반환
+        특정 Champion의 위치데이터만 Slicing하여 DataFrame으로 dump
         :param ChampID: ChampID (LeeSin==67)
-        :return: pd.DataFrame
+        :return: None
         """
         import pandas as pd
 
