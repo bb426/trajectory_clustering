@@ -43,29 +43,6 @@ class LocationData():
                              sep=' ',
                              names=['ChampID', 'x', 'y', 'width', 'height', 'confidence'])
         cond = data['ChampID'] == ChampID
-        # data.loc[cond].to_parquet(f'./data/filtered/{self.Name}_{ChampID}.parquet', index=False)
-        return data.loc[cond, ['x', 'y']].values
-
-#
-# import pandas as pd
-# import os
-# import similaritymeasures
-# import numpy as np
-#
-# parquet_files = [f for f in os.listdir('./data/filtered') if f.endswith('.parquet')]
-# tr_0 = pd.read_parquet('./data/filtered/' + parquet_files[0])[['x', 'y']].values
-# tr_1 = pd.read_parquet('./data/filtered/' + parquet_files[1])[['x', 'y']].values
-# tr_0.shape
-# tr_1.shape
-#
-# df = similaritymeasures.frechet_dist(tr_0, tr_1)
-# df
-#
-# np.zeros((3, 5, 5))
-#
-# data = pd.read_table(f'./data/filtered/ZhoROlQluXw.txt',
-#                      sep=' ',
-#                      names=['ChampID', 'x', 'y', 'width', 'height', 'confidence'])
-# cond = data['ChampID'] == 67
-# # data.loc[cond].to_parquet(f'./data/filtered/{self.Name}_{ChampID}.parquet', index=False)
-# data.loc[cond, ['x', 'y']].values
+        trajectory = data.loc[cond, ['x', 'y']].values
+        trajectory[:, 1] = 1 - trajectory[:, 1]
+        return trajectory
