@@ -3,12 +3,12 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import DBSCAN
 import plotly.express as px
+import plotly.graph_objects as go
 from DataLoader import Meta
 from DataLoader import ChampLoc
 from distances.compute_distance_matrix import compute_distance_matrix
 from PIL import Image
-
-
+from collections import Counter
 
 
 def preprocessing():
@@ -51,13 +51,22 @@ def add_prefix(df):
     for name, t in zip(os.listdir(fp), trajectories):
         for n in range(len(t)):
             prefix.append(name)
-    return pd.concat([df, pd.Series(prefix, name='prefix')], axis=1, ignore_index=True)
+    df = pd.concat([df, pd.Series(prefix, name='prefix')], axis=1, ignore_index=True)
+    df.columns = ['x', 'y', 'label', 'name']
+    return df
+
+
+def add_timestamp(df):
+    timestamp = []
+    for name, count in df.name.value_counts(sort=False).items():
+        for t in range(count):
+            timestamp.append(t)
+    df['timestamp'] = timestamp
+    return df
 
 
 def visualization(df):
     map = Image.open("./data/map.png")
-
-    df.columns = ['x', 'y', 'label', 'name']
     df.label = df.label.astype('int').astype('str')
     fig = px.scatter(df, x='x', y='y', color="label", hover_data=['name'])
     fig.add_layout_image(
@@ -77,9 +86,68 @@ def visualization(df):
     fig.show()
 
 
+def visualization_label(df, label):
+    map = Image.open("./data/map.png")
+    df.label = df.label.astype('int').astype('str')
+    fig = px.scatter(df[df.label == str(label)]
+                     , x='x', y='y', color="timestamp", hover_data=['name'])
+    fig.add_layout_image(
+        dict(
+            source=map,
+            xref="x",
+            yref="y",
+            x=0,
+            y=1,
+            sizex=1,
+            sizey=1,
+            sizing="stretch",
+            opacity=0.5,
+            layer="below"
+            )
+                        )
+    fig.show()
+
+
+def auxiliary_data(df, auxiliary=False):
+    map = Image.open("./data/map.png")
+
+    df.columns = ['x', 'y', 'label', 'name']
+    df.label = df.label.astype('int').astype('str')
+    fig = px.scatter(df[df.name == 'sNW-KwhVqZs'],
+                     x='x', y='y', color="label", hover_data=['name'])
+
+    if auxiliary == True:
+        fig.add_trace(
+            go.Scatter(
+                x=np.random.normal(0.75, 0.01, size=10),
+                y=np.random.normal(0.45, 0.01, size=10),
+                mode='markers',
+                marker_color='rgba(152, 0, 0, .8)'
+            )
+        )
+
+    fig.add_layout_image(
+        dict(
+            source=map,
+            xref="x",
+            yref="y",
+            x=0,
+            y=1,
+            sizex=1,
+            sizey=1,
+            sizing="stretch",
+            opacity=0.5,
+            layer="below"
+            )
+    )
+    fig.show()
+
+
 if __name__ == '__main__':
     trajectories, dist_mat = preprocessing()
-    cl = clustering(dist_mat, eps=0.3, min_samples=1)
+    cl = clustering(dist_mat, eps=0.2, min_samples=1)
+    print(Counter(cl.labels_))
     df = prepare_visualization(trajectories, cl)
     df = add_prefix(df)
+    df = add_timestamp(df)
     visualization(df)
